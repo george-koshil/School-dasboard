@@ -3,7 +3,7 @@ import { lazy } from 'react';
 export const routes = [
   {
     name: 'Учні',
-    path: '/students',
+    path: '/',
     component: lazy(() => import('../pages/StudentsInfoPage/StudentsInfoPage')),
   },
   {
