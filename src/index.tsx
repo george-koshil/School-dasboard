@@ -1,14 +1,38 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { Provider } from "react-redux";
-import { store } from "./app/store";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { ReactQueryDevtools } from "react-query/devtools";
-import { queryClient } from "./app/services/http.service";
 import { QueryClientProvider } from "react-query";
 
 import "./index.css";
+
+import { QueryClient } from "react-query";
+
+const queryClient: QueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 300000,
+      cacheTime: 3600000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onError: (error) => {
+        console.error("An error occurred while fetching", error);
+      },
+    },
+    mutations: {
+      onError: (error, variables, context) => {
+        console.error(
+          "An error occurred while mutating",
+          variables,
+          context,
+          error
+        );
+      },
+    },
+  },
+});
 
 const container = document.getElementById("root")!;
 const root = createRoot(container);
@@ -16,9 +40,7 @@ const root = createRoot(container);
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <Provider store={store}>
         <App />
-      </Provider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </React.StrictMode>

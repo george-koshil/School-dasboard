@@ -1,82 +1,90 @@
-import {
-  RateItemType,
-} from "../../../app/services/students-service/types";
-import { useAppDispatch, useAppSelector } from "../../hooks";
-import {
-  filterStudents,
-  selectStudents,
-  setGrade,
-  setSearchValue,
-} from "../../slices/studentsSlice/studentsSlice";
-import { haveMissingSign } from "./utils";
-import StudentsAttendanceTable from "./components/Table/Table";
-import { Box, CircularProgress } from "@mui/material";
-import GradePiker from "./components/Filters/GradePicker";
-import SearchFilter from "./components/Filters/SearchFilter";
-import { useFetchAndSaveData, usePrepareMutations, useRefetchByGrade } from "./hooks";
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import { useMutation, useQuery } from "react-query";
+import PageHeader from "../../components/PageHeader/PageHeader";
+import LessonsService from "../../services/lessons-service/lessons.service";
+import StudentsService from "../../services/students-service/students.service";
+import SkippingService from "../../services/skipping-service/skipping.service";
+import { getSkippingByIds } from "./utils";
 
-function AttendancePage() {
-  const students = useAppSelector(selectStudents);
-  const dispatch = useAppDispatch();
+const StudentInfoPage = () => {
+  const studentsRes = useQuery("students", StudentsService.getStudents);
+  const lessonsRes = useQuery("lessons", LessonsService.getLessons);
+  const skippingsRes = useQuery("skippings", SkippingService.getSkippings);
+  const addSkippingMutation = useMutation(SkippingService.addSkipping, {
+    onSuccess: () => skippingsRes.refetch(),
+  });
+  const deleteSkippingMutation = useMutation(SkippingService.deleteSkipping, {
+    onSuccess: () => skippingsRes.refetch(),
+  });
 
-  const { classesData, studentRateData, studentsData, isLoading} = useFetchAndSaveData()
+  const onCellClick = (studentId: string, lessonId: string) => () => {
+    const skippingData = getSkippingByIds(
+      studentId,
+      lessonId,
+      skippingsRes?.data ?? []
+    );
 
-  const { pinAsMissingMutation, unpinAsMissingMutation } = usePrepareMutations(studentRateData, classesData, students.grade)
-
-  useRefetchByGrade(studentsData)
-
-  const handleClickOnCell = (
-    studentId: number,
-    classId: number,
-    rateData: RateItemType[]
-  ) => {
-    if (haveMissingSign(studentId, rateData)) {
-      unpinAsMissingMutation.mutate({
-        SchoolboyId: studentId,
-        ColumnId: classId,
-      });
+    if (skippingData?.skip) {
+      deleteSkippingMutation.mutate(skippingData._id as string);
     } else {
-      pinAsMissingMutation.mutate({
-        SchoolboyId: studentId,
-        ColumnId: classId,
-      });
+      addSkippingMutation.mutate({ studentId, lessonId, skip: true });
     }
   };
 
-  const handleSearch = (event: any) => {
-    dispatch(setSearchValue({ value: event.target.value }));
-    dispatch(filterStudents());
-  };
-
-  const handleSelectGrade = (grade: number) => {
-    dispatch(setGrade({ grade }));
-  };
-
-  if (isLoading) {
-    return <CircularProgress />
-  }
-
   return (
-    <div>
-      <Box sx={{ display: "flex", padding: "20px" }}>
-        <SearchFilter
-          onChange={handleSearch}
-          value={students.searchValue}
-        />
-        <GradePiker onSelect={handleSelectGrade} value={students.grade} />
-      </Box>
-      <StudentsAttendanceTable
-        studentsData={
-          students.searchValue.length > 0
-            ? students.filteredStudents
-            : students.items
-        }
-        studentRateData={students.rate}
-        classesData={classesData.data?.Items ?? []}
-        onCellClick={handleClickOnCell}
-      />
-    </div>
+    <Box>
+      <PageHeader name="Таблиця пропуків занятть" />
+      <TableContainer component={Paper} sx={{ mt: "20px", maxHeight: 'calc(100vh - 190px)' }}>
+        <Table aria-label="simple table" stickyHeader>
+          <TableHead>
+            <TableRow>
+              <TableCell align="left">№</TableCell>
+              <TableCell align="center">Ім'я учня</TableCell>
+              {(lessonsRes?.data ?? []).map((lesson) => (
+                <TableCell align="center">{lesson.name}</TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {(studentsRes?.data ?? []).map((student, idx) => (
+              <TableRow key={student._id}>
+                <TableCell align="left">{idx + 1}</TableCell>
+                <TableCell align="center">{student.name}</TableCell>
+                {(lessonsRes?.data ?? []).map((lesson) => (
+                  <TableCell
+                    sx={{ "&:hover": {
+                      border: "1px solid #00FF00",
+                      color: 'gray',
+                      backgroundColor: 'lightblue',
+                      cursor: 'pointer'
+                    },}}
+                    align="center"
+                    onClick={onCellClick(
+                      student._id as string,
+                      lesson._id as string
+                    )}
+                  >
+                    {getSkippingByIds(
+                      student._id as string,
+                      lesson._id as string,
+                      skippingsRes?.data
+                    )?.skip === true ? 'H' : null}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
-}
+};
 
-export default AttendancePage;
+export default StudentInfoPage;

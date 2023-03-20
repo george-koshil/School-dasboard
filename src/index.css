@@ -12,4 +12,24 @@ code {
     monospace;
 }
 
-a:visited * { color: white !important; }
+
+a.unpublished:visited{
+  color:red;
+}
+
+a:visited {
+  color: inherit;
+}
+
+main {
+  margin: 20px 20px 20px 220px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a:-webkit-any-link {
+  color: inherit
+}
+

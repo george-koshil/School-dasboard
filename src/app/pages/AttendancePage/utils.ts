@@ -1,18 +1,12 @@
-import { RateItemType } from "../../services/students-service/types";
+import { Skipping } from "../../services/skipping-service/types";
 
-export const getMissingMark = (
-  studentId: number,
-  studentRateData: RateItemType[]
-) =>
-  (
-    studentRateData.find(
-      (studentRate) => studentRate.SchoolboyId === studentId
-    ) as RateItemType | undefined
-  )?.Title ?? "";
-
-export const haveMissingSign = (
-  studetnId: number,
-  rateData: RateItemType[]
+export const getSkippingByIds = (
+  studentId: string,
+  lessonId: string,
+  skippingsData?: Skipping[]
 ) => {
-  return rateData.find((rate) => rate.SchoolboyId === studetnId)?.Title;
+  return (skippingsData ?? []).find(
+    (skipping) =>
+      skipping.studentId === studentId && skipping.lessonId === lessonId
+  );
 };

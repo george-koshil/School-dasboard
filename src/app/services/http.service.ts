@@ -1,41 +1,39 @@
-import axios, { AxiosInstance } from "axios";
-import { QueryClient } from "react-query";
+const BASE_URL = process.env.API_BASE_URL ?? 'http://localhost:3000'
 
-export const queryClient: QueryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 300000,
-      cacheTime: 3600000,
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      onError: (error) => {
-        console.error("An error occurred while fetching", error);
-      },
-    },
-    mutations: {
-      onError: (error, variables, context) => {
-        console.error(
-          "An error occurred while mutating",
-          variables,
-          context,
-          error
-        );
-      },
-    },
-  },
-});
+export interface HttpResponse<T> extends Response {
+  parsedBody?: T;
+}
 
-export const apiInstance: AxiosInstance = axios.create({
-  baseURL: "http://94.131.246.109:5555/v1",
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    crossdomain: "true",
-    locale: window.navigator.language,
-    platform: "WEB",
-    appSource: "School Dashboard",
-    mode: "cors", // no-cors, *cors, same-origin
-    credentials: "same-origin", // include, *same-origin, omit
-  },
-});
+export class HttpClient {
+  public baseUrl: string;
+  public headers: HeadersInit | undefined
+
+  constructor(baseUrl: string, headers?: HeadersInit) {
+    this.baseUrl = baseUrl;
+    this.headers = headers ?? {}
+  }
+
+  async request<T>(url: string, options?: RequestInit): Promise<HttpResponse<T>> {
+    const response: HttpResponse<T> = await fetch(this.baseUrl + url, { headers: { 'Content-Type': 'application/json', ...this.headers }, mode: 'cors', ...options});
+    response.parsedBody = await response.json();
+    return response;
+  }
+
+  async get<T>(url: string, options?: RequestInit): Promise<HttpResponse<T>> {
+    return await this.request<T>(url, { ...options, method: 'GET' });
+  }
+
+  async post<T>(url: string, body: any, options?: RequestInit): Promise<HttpResponse<T>> {
+    return await this.request<T>(url, { ...options, method: 'POST', body: JSON.stringify(body) });
+  }
+
+  async put<T>(url: string, body: any, options?: RequestInit): Promise<HttpResponse<T>> {
+    return await this.request<T>(url, { ...options, method: 'PUT', body: JSON.stringify(body) });
+  }
+
+  async delete<T>(url: string, options?: RequestInit): Promise<HttpResponse<T>> {
+    return await this.request<T>(url, { ...options, method: 'DELETE' });
+  }
+}
+
+export const http = new HttpClient(BASE_URL)
