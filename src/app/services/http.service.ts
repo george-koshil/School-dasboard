@@ -14,7 +14,7 @@ export class HttpClient {
   }
 
   async request<T>(url: string, options?: RequestInit): Promise<HttpResponse<T>> {
-    const response: HttpResponse<T> = await fetch(this.baseUrl + url, { headers: { 'Content-Type': 'application/json', ...this.headers }, mode: 'cors', ...options});
+    const response: HttpResponse<T> = await fetch(this.baseUrl + url, { headers: { 'Content-Type': 'application/json', ...this.headers }, mode: 'no-cors', ...options});
     response.parsedBody = await response.json();
     return response;
   }
