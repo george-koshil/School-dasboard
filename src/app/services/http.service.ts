@@ -1,4 +1,4 @@
-const BASE_URL = process.env.API_BASE_URL ?? 'https://digital-school-server.netlify.app'
+const BASE_URL = process.env.API_BASE_URL ?? 'https://digital-school-server.netlify.app/.netlify/functions/api'
 
 export interface HttpResponse<T> extends Response {
   parsedBody?: T;
