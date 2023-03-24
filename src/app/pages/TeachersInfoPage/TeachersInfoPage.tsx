@@ -16,6 +16,7 @@ import { Teacher } from "../../services/teachers-service/types";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import ClearIcon from "@mui/icons-material/Clear";
+import CircularProgress from '@mui/material/CircularProgress';
 
 const TeachersInfoPage = () => {
   const teachersRes = useQuery("teachers", TeachersService.getTeachers);
@@ -60,6 +61,10 @@ const TeachersInfoPage = () => {
   const onDeleteTeacher = (id: string) => {
     deleteTeacherMutation.mutate(id);
   };
+
+  if (teachersRes.isLoading) {
+    return <CircularProgress size={100} sx={{ display: 'block', margin: 'auto'}} />
+  }
 
   return (
     <Box>

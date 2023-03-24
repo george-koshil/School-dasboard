@@ -12,8 +12,9 @@ import LessonsService from "../../services/lessons-service/lessons.service";
 import StudentsService from "../../services/students-service/students.service";
 import SkippingService from "../../services/skipping-service/skipping.service";
 import { getSkippingByIds } from "./utils";
+import CircularProgress from "@mui/material/CircularProgress";
 
-const StudentInfoPage = () => {
+const AttendancePage = () => {
   const studentsRes = useQuery("students", StudentsService.getStudents);
   const lessonsRes = useQuery("lessons", LessonsService.getLessons);
   const skippingsRes = useQuery("skippings", SkippingService.getSkippings);
@@ -38,10 +39,17 @@ const StudentInfoPage = () => {
     }
   };
 
+  if (lessonsRes.isLoading || studentsRes.isLoading || skippingsRes.isLoading) {
+    return <CircularProgress size={100} sx={{ display: 'block', margin: 'auto'}} />;
+  }
+
   return (
     <Box>
       <PageHeader name="Таблиця пропуків занятть" />
-      <TableContainer component={Paper} sx={{ mt: "20px", maxHeight: 'calc(100vh - 190px)' }}>
+      <TableContainer
+        component={Paper}
+        sx={{ mt: "20px", maxHeight: "calc(100vh - 190px)" }}
+      >
         <Table aria-label="simple table" stickyHeader>
           <TableHead>
             <TableRow>
@@ -59,12 +67,14 @@ const StudentInfoPage = () => {
                 <TableCell align="center">{student.name}</TableCell>
                 {(lessonsRes?.data ?? []).map((lesson) => (
                   <TableCell
-                    sx={{ "&:hover": {
-                      border: "1px solid #00FF00",
-                      color: 'gray',
-                      backgroundColor: 'lightblue',
-                      cursor: 'pointer'
-                    },}}
+                    sx={{
+                      "&:hover": {
+                        border: "1px solid #00FF00",
+                        color: "gray",
+                        backgroundColor: "lightblue",
+                        cursor: "pointer",
+                      },
+                    }}
                     align="center"
                     onClick={onCellClick(
                       student._id as string,
@@ -75,7 +85,9 @@ const StudentInfoPage = () => {
                       student._id as string,
                       lesson._id as string,
                       skippingsRes?.data
-                    )?.skip === true ? 'H' : null}
+                    )?.skip === true
+                      ? "H"
+                      : null}
                   </TableCell>
                 ))}
               </TableRow>
@@ -87,4 +99,4 @@ const StudentInfoPage = () => {
   );
 };
 
-export default StudentInfoPage;
+export default AttendancePage;

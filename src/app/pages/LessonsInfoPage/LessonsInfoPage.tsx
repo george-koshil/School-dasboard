@@ -9,9 +9,14 @@ import TableRow from "@mui/material/TableRow";
 import { useQuery } from "react-query";
 import PageHeader from "../../components/PageHeader/PageHeader";
 import lessonsService from "../../services/lessons-service/lessons.service";
+import CircularProgress from '@mui/material/CircularProgress';
 
 const LessonsInfoPage = () => {
   const lessonsRes = useQuery("lessons", lessonsService.getLessons);
+
+  if (lessonsRes.isLoading) {
+    return <CircularProgress size={100} sx={{ display: 'block', margin: 'auto'}} />
+  }
 
   return (
     <Box>

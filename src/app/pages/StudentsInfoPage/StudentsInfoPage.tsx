@@ -15,6 +15,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { Student } from "../../services/students-service/types";
 import React from "react";
 import EditStudentDialog from "./components/EditStudentDialog";
+import CircularProgress from '@mui/material/CircularProgress';
 
 const StudentInfoPage = () => {
   const studentsRes = useQuery("students", StudentsService.getStudents);
@@ -60,6 +61,11 @@ const StudentInfoPage = () => {
   const onDeleteTeacher = (id: string) => {
     deleteStudentMutation.mutate(id);
   };
+
+
+  if (studentsRes.isLoading) {
+    return <CircularProgress size={100} sx={{ display: 'block', margin: 'auto'}} />
+  }
 
   return (
     <Box>
